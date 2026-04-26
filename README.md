@@ -46,12 +46,12 @@ Producer (Python) ---> Kafka Topic (clickstream) ---> Consumer (Python)
 
 ---
 
-## 🚀 Setup Instructions
+##  Setup Instructions
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/clickstream-kafka.git
+git clone https://github.com/Nuclear990/KafkaClickstream.git
 cd clickstream-kafka
 ```
 
