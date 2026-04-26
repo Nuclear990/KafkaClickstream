@@ -28,6 +28,9 @@ try:
             f"{event['user_id']} -> {event['event']} on {event['page']}"
         )
 
+        consumer.commit(asynchronous=False)
+
+
 except KeyboardInterrupt:
     pass
 finally:
