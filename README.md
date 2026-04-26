@@ -133,7 +133,7 @@ http://localhost:8080
 
 ---
 
-## 🧠Key Concepts Demonstrated
+## Key Concepts Demonstrated
 
 * Event-driven architecture
 * Producer–Consumer model
