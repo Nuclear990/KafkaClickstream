@@ -8,7 +8,7 @@ consumer = Consumer({
 })
 
 consumer.subscribe(["clickstream"])
-
+        
 try:
     while True:
         msg = consumer.poll(timeout=1.0)
@@ -19,13 +19,13 @@ try:
             if msg.error().code() == KafkaError._PARTITION_EOF:
                 continue
             print(f"Error: {msg.error()}")
-            break
+            continue
 
         event = json.loads(msg.value().decode())
 
         print(
             f"partition= {msg.partition()} offset= {msg.offset()} | ",
-            f"{event['user_id']} -> {event['event']} on {event['page']}"
+            f"{event['user_id']} -> {event['event_type']} on {event['product_id']}"
         )
 
         consumer.commit(asynchronous=False)

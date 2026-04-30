@@ -1,4 +1,4 @@
-from confluent_kafka import AdminClient, NewTopic
+from confluent_kafka.admin import AdminClient, NewTopic
 
 admin = AdminClient({
     "bootstrap.servers": "kafka:9092"
@@ -33,3 +33,6 @@ def list_topics():
         # Skip internal Kafka topics (they start with __)
         if not name.startswith("__"):
             print(f"    {name}: {len(topic.partitions)} partitions")
+
+
+create_topic("clickstream")

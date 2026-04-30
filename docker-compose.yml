@@ -14,7 +14,7 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
     healthcheck:
       test: ["CMD", "kafka-topics", "--list", "--bootstrap-server", "localhost:9092"]
@@ -35,16 +35,42 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 
+  admin:
+    build: .
+    container_name: admin
+    command: python3 admin.py
+    depends_on:
+      kafka:
+        condition: service_healthy
+
   producer:
+    container_name: producer
     build: .
     command: python3 producer.py
     depends_on:
       kafka:
         condition: service_healthy
+      admin:
+        condition: service_completed_successfully
 
-  consumer:
+  consumer1:
+    container_name: consumer1
     build: .
     command: python3 consumer.py
     depends_on:
       kafka:
         condition: service_healthy
+      admin:
+        condition: service_completed_successfully
+
+  consumer2:
+    container_name: consumer2
+    build: .
+    command: python3 consumer.py
+    depends_on:
+      kafka:
+        condition: service_healthy
+      admin:
+        condition: service_completed_successfully
+
+
