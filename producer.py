@@ -11,35 +11,12 @@ def delivery_report(err, msg):
         print(f"sent -> partition={msg.partition()} offset={msg.offset()}")
 
 
-events = ["page_view", "click", "purchase", "add_to_cart", "product_view"]
+events = ["page_view", "click", "purchase1", "add_to_cart", "product_view", "add_to_cart", "add_to_cart", "add_to_cart"]
 products = {1: 10, 2: 15, 3: 4, 4: 100, 5: 200, 6: 19, 7: 21, 8: 64, 9: 81, 10: 100}
 
-SESSION_TIMEOUT = 30
-
-user_state = {
-    uid: {
-        "session_id": f"sess-{uid}-1",
-        "session_num": 1,
-        "last_event_time": datetime.now(timezone.utc)
-    }
-    for uid in range(1, 11)
-}
-
-def get_session(user_id):
-    state = user_state[user_id]
-    now = datetime.now(timezone.utc)
-    elapsed = (now - state["last_event_time"]).total_seconds()
-
-    # rotate session if user has been inactive, or randomly (5% chance)
-    if elapsed > SESSION_TIMEOUT or random.random() < 0.05:
-        state["session_num"] += 1
-        state["session_id"] = f"sess-{user_id}-{state['session_num']}"
-
-    state["last_event_time"] = now
-    return state["session_id"]
 
 
-print("Sending events... Ctrl+C to stop")
+print("Sending events... Ctrl+C to stop", flush=True)
 
 try:
     i = 0
@@ -47,9 +24,8 @@ try:
         i += 1
         product_id = random.choice(list(products.keys()))
         product_price = products[product_id]
-        user_id = random.randint(1, 10)
+        user_id = random.randint(1, 100)
         event_type = random.choice(events)
-        session_id = get_session(user_id)
 
         # Simulate ~10% late-arriving events
         if random.random() < 0.1:
@@ -58,8 +34,8 @@ try:
             ts = datetime.now(timezone.utc)
 
         event = {
+            "event_id": i,
             "user_id": user_id,
-            "session_id": session_id,
             "event_type": event_type,
             "product_id": product_id if event_type != "page_view" and event_type != "click" else None,
             "cost": product_price if event_type != "page_view" and event_type != "click" else None,
@@ -75,8 +51,8 @@ try:
         )
 
         producer.poll(0)
-        print(f"[{i}] user={user_id} session={session_id} event={event_type} product={product_id} produced at = {ts.isoformat()}")
-        time.sleep(1)
+        print(f"[{i}] user={user_id} event={event_type} product={product_id} produced at = {ts.isoformat()}", flush=True)
+        time.sleep(random.randint(1, 10))
 
 except KeyboardInterrupt:
     pass

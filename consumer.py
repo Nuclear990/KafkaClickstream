@@ -3,36 +3,44 @@ import json
 
 consumer = Consumer({
     "bootstrap.servers": "kafka:9092",
-    "group.id": "my-group",
-    "auto.offset.reset": "earliest"
+    "group.id": "abandoned-carts-debug",
+    "auto.offset.reset": "earliest"   # start from beginning for testing
 })
 
-consumer.subscribe(["clickstream"])
-        
+consumer.subscribe(["abandoned_carts"])
+
+print("Listening to abandoned_carts... (Ctrl+C to stop)", flush=True)
+
 try:
     while True:
-        msg = consumer.poll(timeout=1.0)
+        msg = consumer.poll(1.0)
 
         if msg is None:
             continue
+
         if msg.error():
             if msg.error().code() == KafkaError._PARTITION_EOF:
                 continue
-            print(f"Error: {msg.error()}")
-            continue
+            else:
+                print("Error:", msg.error())
+                break
 
-        event = json.loads(msg.value().decode())
+        # Decode key
+        key = msg.key().decode() if msg.key() else None
 
-        print(
-            f"partition= {msg.partition()} offset= {msg.offset()} | ",
-            f"{event['user_id']} -> {event['event_type']} on {event['product_id']}"
-        )
+        # Decode value (JSON)
+        try:
+            value = json.loads(msg.value().decode())
+        except Exception:
+            value = msg.value().decode()
 
-        consumer.commit(asynchronous=False)
-
+        print(f"\n--- MESSAGE ---", flush=True)
+        print(f"user_id (key): {key}", flush=True)
+        print(f"value: {value}")
+        print(f"partition: {msg.partition()}, offset: {msg.offset()}", flush=True)
 
 except KeyboardInterrupt:
     pass
 finally:
     consumer.close()
-    print("consumer closed")
+    print("Consumer closed")

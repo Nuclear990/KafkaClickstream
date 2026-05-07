@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
 
   kafka:
@@ -5,17 +7,25 @@ services:
     container_name: kafka
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
       CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+
     healthcheck:
       test: ["CMD", "kafka-topics", "--list", "--bootstrap-server", "localhost:9092"]
       interval: 10s
@@ -46,15 +56,15 @@ services:
   producer:
     container_name: producer
     build: .
-    command: python3 producer.py
+    command: python3 -u producer.py
     depends_on:
       kafka:
         condition: service_healthy
       admin:
         condition: service_completed_successfully
 
-  consumer1:
-    container_name: consumer1
+  consumer_python:
+    container_name: consumer_python
     build: .
     command: python3 consumer.py
     depends_on:
@@ -63,14 +73,20 @@ services:
       admin:
         condition: service_completed_successfully
 
-  consumer2:
-    container_name: consumer2
-    build: .
-    command: python3 consumer.py
+  consumer_spark:
+    image: apache/spark:3.5.1
+    container_name: consumer_spark
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    command: >
+      /opt/spark/bin/spark-submit
+      --master local[*]
+      /app/consumers/test.py
+    volumes:
+      - .:/app
     depends_on:
       kafka:
         condition: service_healthy
       admin:
         condition: service_completed_successfully
-
-
