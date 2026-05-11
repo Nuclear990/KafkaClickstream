@@ -1,161 +1,254 @@
-# Kafka Clickstream Simulation Project
+# Kafka Clickstream Streaming Pipeline
 
-##  Overview
+Real-time clickstream analytics pipeline built using:
 
-This project simulates a **real-time clickstream pipeline** using Apache Kafka.
+- Apache Kafka
+- Spark Structured Streaming
+- Python
+- Docker
 
-* A **Producer** generates user activity events (page views, clicks, purchases)
-* A **Consumer** reads and processes these events
-* Kafka runs via Docker
-* Kafka UI is used for visualization
+The project simulates realistic e-commerce user behavior and processes streaming events for:
 
-This mimics how real-world systems track user behavior on websites/apps.
-
----
-
-##  Architecture
-
-```
-Producer (Python) ---> Kafka Topic (clickstream) ---> Consumer (Python)
-                                 |
-                              Kafka UI
-```
+- Cart abandonment detection
+- Purchase session analytics
+- Event-time streaming
+- Session windows
+- Watermarking
 
 ---
 
-##  Tech Stack
+# Architecture
 
-* Python
-* Apache Kafka
-* Docker & Docker Compose
-* confluent-kafka (Python client)
+```text
+Producer --> Kafka(clickstream) --> Spark Consumers
+                    |
+                    +--> Kafka UI
+```
 
 ---
 
-##  Project Structure
+# Features
 
+## Realistic Clickstream Simulation
+
+The producer generates events like:
+
+- `page_view`
+- `search`
+- `product_view`
+- `add_to_cart`
+- `purchase`
+
+It also simulates:
+
+- Late events
+- Duplicate events
+- Stateful user journeys
+- Event-time delays
+
+Source: :contentReference[oaicite:0]{index=0}
+
+---
+
+# Streaming Pipelines
+
+## 1. Cart Abandonment Detection
+
+Detects users who:
+
+- Added products to cart
+- Did not purchase
+- Became inactive
+
+Uses:
+
+- Watermarking
+- Session windows
+- Stateful aggregation
+
+Outputs to Kafka topic:
+
+```text
+abandoned_carts
 ```
+
+Source: :contentReference[oaicite:1]{index=1}
+
+---
+
+## 2. User Purchase Summary
+
+Processes purchase events and:
+
+- Joins with product metadata
+- Computes total spending
+- Tracks purchased products per session
+
+Outputs parquet summaries.
+
+Source: :contentReference[oaicite:2]{index=2}
+
+---
+
+# Tech Stack
+
+| Component | Technology |
+|---|---|
+| Streaming Broker | Kafka |
+| Stream Processing | Spark Structured Streaming |
+| Producer | Python |
+| Consumers | Python + Spark |
+| Containerization | Docker |
+| Monitoring | Kafka UI |
+
+---
+
+# Project Structure
+
+```text
 .
 ├── producer.py
-├── consumer.py
+├── admin.py
 ├── docker-compose.yml
 ├── requirements.txt
-├── README.md
-└── .gitignore
+├── products.csv
+│
+├── consumers/
+│   ├── abandoned_carts_consumer.py
+│   ├── cart_abandonment.py
+│   ├── user_purchase_summary.py
+│   └── funnel_analysis.py
+│
+├── Dockerfile
+├── spark.Dockerfile
+└── README.md
 ```
 
 ---
 
-##  Setup Instructions
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/Nuclear990/KafkaClickstream.git
-cd clickstream-kafka
-```
-
----
-
-### 2. Create virtual environment
-
-```bash
-python3 -m venv venv
-source venv/bin/activate     # Linux/Mac
-# OR
-venv\Scripts\activate        # Windows
-```
-
----
-
-### 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-### 4. Start Kafka using Docker
-
-```bash
-docker-compose up -d
-```
-
-Wait ~30–40 seconds for Kafka to become healthy.
-
----
-
-### 5. Run Producer
-
-```bash
-python producer.py
-```
-
-This will continuously send random clickstream events.
-
----
-
-### 6. Run Consumer (in another terminal)
-
-```bash
-python consumer.py
-```
-
-You should see events being consumed in real time.
-
----
-
-## Kafka UI
-
-Access Kafka UI at:
-
-```
-http://localhost:8080
-```
-
-* View topic: `clickstream`
-* Inspect messages
-* Monitor consumer groups
-
----
-
-##  Sample Event
+# Event Schema
 
 ```json
 {
-  "user_id": "user1",
-  "event": "click",
-  "page": "/products",
-  "time": "2026-04-26T12:00:00Z"
+  "event_id": 1,
+  "user_id": 44,
+  "event_type": "add_to_cart",
+  "product_id": 12,
+  "time_generated": "2026-05-11T12:00:00Z",
+  "time_received": "2026-05-11T12:00:03Z"
 }
 ```
 
----
-
-## Key Concepts Demonstrated
-
-* Event-driven architecture
-* Producer–Consumer model
-* Kafka topics & partitions
-* Consumer groups
-* Real-time data streaming
-* Offset management
+Schema source: :contentReference[oaicite:3]{index=3}
 
 ---
 
-##  Important Notes
+# Setup
 
-* Kafka runs inside Docker → use `kafka:9092` as bootstrap server
-* Do NOT change it to `localhost:9092` inside Python scripts
-* Topic `clickstream` is auto-created
-* Virtual environment (`venv/`) is intentionally excluded from Git
-
----
-
-##  Stopping Services
+## Start the pipeline
 
 ```bash
-docker-compose down
+docker compose up --build
 ```
 
+This starts:
+
+- Kafka
+- Kafka UI
+- Producer
+- Spark consumers
+- Admin service
+
+Docker Compose source: :contentReference[oaicite:4]{index=4}
+
+---
+
+# Kafka UI
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+You can:
+
+- Inspect topics
+- Monitor messages
+- View consumer groups
+- Debug offsets
+
+---
+
+# Kafka Topics
+
+## clickstream
+
+Raw clickstream events.
+
+## abandoned_carts
+
+Derived stream for abandoned carts.
+
+Configured with:
+
+- Topic compaction
+- Retention policies
+- Fast cleanup
+
+Source: :contentReference[oaicite:5]{index=5}
+
+---
+
+# Important Streaming Concepts
+
+## Watermarking
+
+```python
+withWatermark("event_time", "5 seconds")
+```
+
+## Session Windows
+
+```python
+session_window(col("event_time"), "5 seconds")
+```
+
+## Exactly-Once Producer Safety
+
+```python
+"acks": "all",
+"enable.idempotence": True
+```
+
+Producer config source: :contentReference[oaicite:6]{index=6}
+
+---
+
+# Requirements
+
+```text
+confluent-kafka==2.14.0
+```
+
+Source: :contentReference[oaicite:7]{index=7}
+
+---
+
+# Notes
+
+- Kafka broker inside Docker:
+  
+```text
+kafka:9092
+```
+
+- Kafka UI:
+  
+```text
+localhost:8080
+```
+
+- Spark runs inside Docker containers.
+
+---
