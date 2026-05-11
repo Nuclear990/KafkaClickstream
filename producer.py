@@ -4,9 +4,7 @@ import random
 import json
 import time
 
-# ======================================================
-# CONFIG
-# ======================================================
+# Config
 
 TOPIC = "clickstream"
 
@@ -20,9 +18,7 @@ KAFKA_CONFIG = {
 
 producer = Producer(KAFKA_CONFIG)
 
-# ======================================================
-# USERS
-# ======================================================
+# Users
 
 users = {}
 
@@ -39,21 +35,15 @@ for uid in range(1, NUM_USERS + 1):
         "last_event_time": datetime.now(timezone.utc)
     }
 
-# ======================================================
-# PRODUCTS
-# ======================================================
+# Products
 
 PRODUCT_IDS = list(range(1, 101))
 
-# ======================================================
-# EVENT COUNTER
-# ======================================================
+# Event Counter
 
 event_id = 0
 
-# ======================================================
-# DELIVERY REPORT
-# ======================================================
+# Delivery Report
 
 def delivery_report(err, msg):
 
@@ -61,17 +51,11 @@ def delivery_report(err, msg):
 
         print(f"DELIVERY FAILED: {err}")
 
-# ======================================================
-# NEXT EVENT LOGIC
-# ======================================================
+# Next Event Logic
 
 def get_next_event(user):
 
     state = user["state"]
-
-    # ==============================================
-    # START OF JOURNEY
-    # ==============================================
 
     if state == "idle":
 
@@ -84,10 +68,6 @@ def get_next_event(user):
             weights=[4, 3, 3],
             k=1
         )[0]
-
-    # ==============================================
-    # BROWSING
-    # ==============================================
 
     if state == "browsing":
 
@@ -102,10 +82,6 @@ def get_next_event(user):
             k=1
         )[0]
 
-    # ==============================================
-    # VIEWING PRODUCT
-    # ==============================================
-
     if state == "viewing":
 
         return random.choices(
@@ -118,10 +94,6 @@ def get_next_event(user):
             weights=[3, 5, 1, 1],
             k=1
         )[0]
-
-    # ==============================================
-    # CART
-    # ==============================================
 
     if state == "cart":
 
@@ -136,9 +108,7 @@ def get_next_event(user):
             k=1
         )[0]
 
-# ======================================================
-# BUILD EVENT
-# ======================================================
+# Build Event
 
 def build_event(user_id, event_type):
 
@@ -147,10 +117,6 @@ def build_event(user_id, event_type):
     event_id += 1
 
     user = users[user_id]
-
-    # ==============================================
-    # PRODUCT
-    # ==============================================
 
     product_id = None
 
@@ -173,10 +139,6 @@ def build_event(user_id, event_type):
 
         user["last_product"] = product_id
 
-    # ==============================================
-    # EVENT TIME
-    # ==============================================
-
     delay = random.randint(1, 15)
 
     user["last_event_time"] += timedelta(
@@ -186,10 +148,6 @@ def build_event(user_id, event_type):
     generated_time = user[
         "last_event_time"
     ]
-
-    # ==============================================
-    # PROCESSING DELAY
-    # ==============================================
 
     receive_delay = random.randint(0, 5)
 
@@ -223,17 +181,11 @@ def build_event(user_id, event_type):
             received_time.isoformat()
     }
 
-# ======================================================
-# USER STATE TRANSITIONS
-# ======================================================
+# User State Transitions
 
 def mutate_user(user_id, event_type):
 
     user = users[user_id]
-
-    # ==============================================
-    # STATE TRANSITIONS
-    # ==============================================
 
     if event_type in [
         "page_view",
@@ -266,9 +218,7 @@ def mutate_user(user_id, event_type):
 
         user["cart"] = []
 
-# ======================================================
-# SEND EVENT
-# ======================================================
+# Send Event
 
 def send_event(event):
 
@@ -281,10 +231,7 @@ def send_event(event):
 
     print(event)
 
-    # ==============================================
-    # DUPLICATES
-    # ==============================================
-
+    # duplicates
     if random.random() < 0.02:
 
         producer.produce(
@@ -296,9 +243,7 @@ def send_event(event):
 
     producer.poll(0)
 
-# ======================================================
-# MAIN LOOP
-# ======================================================
+# Main Loop
 
 print("Starting producer...")
 
