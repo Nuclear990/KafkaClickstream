@@ -1,0 +1,12 @@
+venv
+.git
+__pycache__
+*.pyc
+
+spark-warehouse
+tmp
+checkpoints
+output
+
+.idea
+.vscode

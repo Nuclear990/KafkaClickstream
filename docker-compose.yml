@@ -63,26 +63,44 @@ services:
       admin:
         condition: service_completed_successfully
 
-  consumer_python:
+  consumer_python_cart:
     container_name: consumer_python
     build: .
-    command: python3 consumer.py
+    command: python3 consumers/abandoned_carts_consumer.py
     depends_on:
       kafka:
         condition: service_healthy
       admin:
         condition: service_completed_successfully
 
-  consumer_spark:
+  consumer_cart_adandonment:
     image: apache/spark:3.5.1
-    container_name: consumer_spark
+    container_name: consumer_cart_abandonment
     build:
       context: .
       dockerfile: spark.Dockerfile
     command: >
       /opt/spark/bin/spark-submit
       --master local[*]
-      /app/consumers/test.py
+      /app/consumers/cart_abandonment.py
+    volumes:
+      - .:/app
+    depends_on:
+      kafka:
+        condition: service_healthy
+      admin:
+        condition: service_completed_successfully
+
+  consumer_user_purchase:
+    image: apache/spark:3.5.1
+    container_name: consumer_user_purchase
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    command: >
+      /opt/spark/bin/spark-submit
+      --master local[*]
+      /app/consumers/user_purchase_summary.py
     volumes:
       - .:/app
     depends_on:

@@ -42,7 +42,6 @@ schema = StructType([
     StructField("user_id", IntegerType()),
     StructField("event_type", StringType()),
     StructField("product_id", IntegerType()),
-    StructField("cost", IntegerType()),
     StructField("time_generated", StringType()),
     StructField("time_received", StringType())
 ])
