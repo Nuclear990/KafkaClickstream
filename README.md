@@ -1,4 +1,4 @@
-# E-commerce Clickstream Streaming Pipeline
+# E-commerce Clickstream Pipeline
 
 The project simulates realistic e-commerce user activity and processes streaming events for:
 
