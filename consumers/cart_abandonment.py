@@ -38,8 +38,8 @@ schema = StructType([
     StructField("user_id", IntegerType()),
     StructField("event_type", StringType()),
     StructField("product_id", IntegerType()),
-    StructField("time_generated", StringType()),
-    StructField("time_received", StringType())
+    StructField("time_generated", TimestampType()),
+    StructField("time_received", TimestampType())
 ])
 
 # Parse JSON

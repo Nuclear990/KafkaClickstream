@@ -5,106 +5,171 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.7.0
     container_name: kafka
+
     ports:
       - "9092:9092"
       - "29092:29092"
+
     environment:
       KAFKA_NODE_ID: 1
+
       KAFKA_PROCESS_ROLES: broker,controller
+
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
 
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:29092
+
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
 
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
 
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
 
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
 
       CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
 
     healthcheck:
       test: ["CMD", "kafka-topics", "--list", "--bootstrap-server", "localhost:9092"]
+
       interval: 10s
+
       timeout: 10s
+
       retries: 10
+
       start_period: 30s
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    depends_on:
-      kafka:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
 
   admin:
     build: .
     container_name: admin
+
     command: python3 admin.py
+
     depends_on:
       kafka:
         condition: service_healthy
+
 
   producer:
-    container_name: producer
     build: .
+    container_name: producer
+
     command: python3 -u producer.py
+
     depends_on:
       kafka:
         condition: service_healthy
+
       admin:
         condition: service_completed_successfully
+
 
   consumer_python_cart:
-    container_name: consumer_python
     build: .
+    container_name: consumer_python_cart
+
     command: python3 consumers/abandoned_carts_consumer.py
+
     depends_on:
       kafka:
         condition: service_healthy
+
       admin:
         condition: service_completed_successfully
 
-  consumer_cart_adandonment:
-    image: apache/spark:3.5.1
+
+  consumer_cart_abandonment:
     container_name: consumer_cart_abandonment
+
     build:
       context: .
       dockerfile: spark.Dockerfile
+
     command: >
       /opt/spark/bin/spark-submit
       --master local[*]
       /app/consumers/cart_abandonment.py
+
     volumes:
       - .:/app
+
     depends_on:
       kafka:
         condition: service_healthy
+
       admin:
         condition: service_completed_successfully
 
+
   consumer_user_purchase:
-    image: apache/spark:3.5.1
     container_name: consumer_user_purchase
+
     build:
       context: .
       dockerfile: spark.Dockerfile
+
     command: >
       /opt/spark/bin/spark-submit
       --master local[*]
       /app/consumers/user_purchase_summary.py
+
     volumes:
       - .:/app
+
     depends_on:
       kafka:
         condition: service_healthy
+
+      admin:
+        condition: service_completed_successfully
+
+
+  consumer_funnel:
+    container_name: consumer_funnel
+
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+
+    command: >
+      /opt/spark/bin/spark-submit
+      --master local[*]
+      /app/consumers/funnel_analysis.py
+
+    volumes:
+      - .:/app
+
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+      admin:
+        condition: service_completed_successfully
+
+  consumer_products:
+    container_name: consumer_products
+
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+
+    command: >
+      /opt/spark/bin/spark-submit
+      --master local[*]
+      /app/consumers/products_summary.py
+
+    volumes:
+      - .:/app
+
+    depends_on:
+      kafka:
+        condition: service_healthy
+
       admin:
         condition: service_completed_successfully
