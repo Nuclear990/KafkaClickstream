@@ -1,11 +1,4 @@
-# Kafka Clickstream Streaming Pipeline
-
-Real-time clickstream analytics pipeline built using:
-
-- Apache Kafka
-- Spark Structured Streaming
-- Python
-- Docker
+# E-commerce Clickstream Streaming Pipeline
 
 The project simulates realistic e-commerce user activity and processes streaming events for:
 
