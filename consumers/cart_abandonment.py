@@ -17,7 +17,7 @@ shutil.rmtree(checkpoint_path, ignore_errors=True)
 
 spark = SparkSession.builder \
     .appName("ClickstreamConsumer") \
-    .master("local[*]") \
+    .master("local[2]") \
     .getOrCreate()
 
 spark.sparkContext.setLogLevel("ERROR")

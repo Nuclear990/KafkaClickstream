@@ -13,7 +13,7 @@ from pyspark.sql.functions import (
 
 spark = SparkSession.builder \
     .appName("product_summary") \
-    .master("local[*]") \
+    .master("local[2]") \
     .getOrCreate()
 
 spark.sparkContext.setLogLevel("ERROR")

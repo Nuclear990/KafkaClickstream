@@ -12,7 +12,7 @@ import pandas as pd
 
 spark = SparkSession.builder \
     .appName("funnel-asp") \
-    .master("local[*]") \
+    .master("local[2]") \
     .getOrCreate()
 
 spark.sparkContext.setLogLevel("ERROR")

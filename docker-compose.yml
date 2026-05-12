@@ -93,7 +93,7 @@ services:
 
     command: >
       /opt/spark/bin/spark-submit
-      --master local[*]
+      --master local[2]
       /app/consumers/cart_abandonment.py
 
     volumes:
@@ -116,7 +116,7 @@ services:
 
     command: >
       /opt/spark/bin/spark-submit
-      --master local[*]
+      --master local[2]
       /app/consumers/user_purchase_summary.py
 
     volumes:
@@ -139,7 +139,7 @@ services:
 
     command: >
       /opt/spark/bin/spark-submit
-      --master local[*]
+      --master local[2]
       /app/consumers/funnel_analysis.py
 
     volumes:
@@ -161,7 +161,7 @@ services:
 
     command: >
       /opt/spark/bin/spark-submit
-      --master local[*]
+      --master local[2]
       /app/consumers/products_summary.py
 
     volumes:

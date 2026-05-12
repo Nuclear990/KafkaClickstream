@@ -9,7 +9,7 @@ spark = SparkSession.builder \
 
 spark = SparkSession.builder \
     .appName("user_purchase_summary") \
-    .master("local[*]") \
+    .master("local[2]") \
     .getOrCreate()
 
 spark.sparkContext.setLogLevel("ERROR")
