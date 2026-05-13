@@ -226,6 +226,10 @@ def funnel_analysis(batch_df, batch_id):
         rows,
         ["funnel_stage", "user_count", "dropoff_rate_pct", "conversion_rate_pct"],
     )
+    op_df.write \
+        .mode("append") \
+        .parquet("/app/data/output/funnel")
+
 
     print(f"\n=== Funnel Analysis — batch {batch_id} ===")
     op_df.show(truncate=False)
@@ -242,7 +246,7 @@ def funnel_analysis(batch_df, batch_id):
 
 query = user_df.writeStream \
     .outputMode("update") \
-    .option("checkpointLocation", "/tmp/funnel_checkpoint") \
+    .option("checkpointLocation", "/app/data/checkpoint/funnel") \
     .foreachBatch(funnel_analysis) \
     .start()
 

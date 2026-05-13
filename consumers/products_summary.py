@@ -107,11 +107,11 @@ def write_summaries(batch_df, batch_id):
    
     product_summary_df.write \
         .mode("append") \
-        .parquet("/tmp/product_summary")
+        .parquet("/app/data/output/product")
 
     category_summary_df.write \
         .mode("append") \
-        .parquet("/tmp/category_summary")
+        .parquet("/app/data/output/category")
 
 
 query = joined_df.writeStream \
@@ -119,7 +119,7 @@ query = joined_df.writeStream \
     .foreachBatch(write_summaries) \
     .option(
         "checkpointLocation",
-        "/tmp/checkpoints/product_summary"
+        "/app/data/checkpoint/product"
     ) \
     .start()
 

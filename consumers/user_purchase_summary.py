@@ -4,11 +4,6 @@ from pyspark.sql.functions import *
 
 spark = SparkSession.builder \
     .appName("user_purchase_summary") \
-    .master("local[*]") \
-    .getOrCreate()
-
-spark = SparkSession.builder \
-    .appName("user_purchase_summary") \
     .master("local[2]") \
     .getOrCreate()
 
@@ -58,7 +53,7 @@ products_df = spark.read \
     .format("csv") \
     .schema(product_schema) \
     .option("header", "true") \
-    .load("/app/products.csv")
+    .load("/app/data/static/products.csv")
 
 
 joined_df = events_df.alias("e").join(
@@ -97,7 +92,7 @@ def print_batch(batch_df, batch_id):
 
     batch_df.write \
         .mode("append") \
-        .parquet("/tmp/user_purchase_summary")
+        .parquet("/app/data/output/users")
 
 
 query = clean_df.writeStream \
@@ -105,7 +100,7 @@ query = clean_df.writeStream \
     .foreachBatch(print_batch) \
     .option(
         "checkpointLocation",
-        "/tmp/checkpoints/user_purchase_summary"
+        "/app/data/checkpoint/users"
     ) \
     .start()
 

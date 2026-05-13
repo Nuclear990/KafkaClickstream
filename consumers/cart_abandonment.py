@@ -5,13 +5,9 @@ from pyspark.sql.types import *
 import shutil
 import os
 
-# Cleanup (DEV ONLY)
 
-output_path = "/tmp/output"
-checkpoint_path = "/tmp/checkpoint"
+checkpoint_path = "/app/data/checkpoint/cart"
 
-shutil.rmtree(output_path, ignore_errors=True)
-shutil.rmtree(checkpoint_path, ignore_errors=True)
 
 # Spark Session
 

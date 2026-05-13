@@ -28,7 +28,7 @@ for uid in range(1, NUM_USERS + 1):
 
         "state": "idle",
 
-        "cart": [],
+        "cart": set(),
 
         "last_product": None,
 
@@ -126,7 +126,17 @@ def build_event(user_id, event_type):
         "purchase"
     ]:
 
+        # purchases must come from cart
         if (
+            event_type == "purchase"
+            and len(user["cart"]) > 0
+        ):
+
+            product_id = random.choice(
+                list(user["cart"])
+            )
+
+        elif (
             user["last_product"]
             and random.random() < 0.7
         ):
@@ -183,9 +193,11 @@ def build_event(user_id, event_type):
 
 # User State Transitions
 
-def mutate_user(user_id, event_type):
+def mutate_user(user_id, event):
 
     user = users[user_id]
+
+    event_type = event["event_type"]
 
     if event_type in [
         "page_view",
@@ -202,21 +214,27 @@ def mutate_user(user_id, event_type):
 
         user["state"] = "cart"
 
-        user["cart"].append(
-            user["last_product"]
+        user["cart"].add(
+            event["product_id"]
         )
 
     elif event_type == "purchase":
 
-        user["state"] = "idle"
+        purchased_product = event["product_id"]
 
-        user["cart"] = []
+        user["cart"].discard(
+            purchased_product
+        )
+
+        if len(user["cart"]) == 0:
+
+            user["state"] = "idle"
 
     elif event_type == "exit":
 
         user["state"] = "idle"
 
-        user["cart"] = []
+        user["cart"] = set()
 
 # Send Event
 
@@ -267,7 +285,9 @@ try:
 
                 mutate_user(
                     user_id,
-                    event_type
+                    {
+                        "event_type": "exit"
+                    }
                 )
 
                 continue
@@ -281,7 +301,7 @@ try:
 
             mutate_user(
                 user_id,
-                event_type
+                event
             )
 
         producer.flush()
