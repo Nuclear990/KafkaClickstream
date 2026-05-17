@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
 
@@ -70,41 +69,41 @@ services:
         condition: service_completed_successfully
 
 
-  consumer_python_cart:
-    build: .
-    container_name: consumer_python_cart
+  # consumer_python_cart:
+  #   build: .
+  #   container_name: consumer_python_cart
 
-    command: python3 consumers/abandoned_carts_consumer.py
+  #   command: python3 consumers/abandoned_carts_consumer.py
 
-    depends_on:
-      kafka:
-        condition: service_healthy
+  #   depends_on:
+  #     kafka:
+  #       condition: service_healthy
 
-      admin:
-        condition: service_completed_successfully
+  #     admin:
+  #       condition: service_completed_successfully
 
 
-  consumer_cart_abandonment:
-    container_name: consumer_cart_abandonment
+  # consumer_cart_abandonment:
+  #   container_name: consumer_cart_abandonment
 
-    build:
-      context: .
-      dockerfile: spark.Dockerfile
+  #   build:
+  #     context: .
+  #     dockerfile: spark.Dockerfile
 
-    command: >
-      /opt/spark/bin/spark-submit
-      --master local[2]
-      /app/consumers/cart_abandonment.py
+  #   command: >
+  #     /opt/spark/bin/spark-submit
+  #     --master local[2]
+  #     /app/consumers/cart_abandonment.py
 
-    volumes:
-      - .:/app
+  #   volumes:
+  #     - .:/app
 
-    depends_on:
-      kafka:
-        condition: service_healthy
+  #   depends_on:
+  #     kafka:
+  #       condition: service_healthy
 
-      admin:
-        condition: service_completed_successfully
+  #     admin:
+  #       condition: service_completed_successfully
 
 
   consumer_user_purchase:
@@ -130,8 +129,52 @@ services:
         condition: service_completed_successfully
 
 
-  consumer_funnel:
-    container_name: consumer_funnel
+  # consumer_funnel:
+  #   container_name: consumer_funnel
+
+  #   build:
+  #     context: .
+  #     dockerfile: spark.Dockerfile
+
+  #   command: >
+  #     /opt/spark/bin/spark-submit
+  #     --master local[2]
+  #     /app/consumers/funnel_analysis.py
+
+  #   volumes:
+  #     - .:/app
+
+  #   depends_on:
+  #     kafka:
+  #       condition: service_healthy
+
+  #     admin:
+  #       condition: service_completed_successfully
+
+  # consumer_products:
+  #   container_name: consumer_products
+
+  #   build:
+  #     context: .
+  #     dockerfile: spark.Dockerfile
+
+  #   command: >
+  #     /opt/spark/bin/spark-submit
+  #     --master local[2]
+  #     /app/consumers/products_summary.py
+
+  #   volumes:
+  #     - .:/app
+
+  #   depends_on:
+  #     kafka:
+  #       condition: service_healthy
+
+  #     admin:
+  #       condition: service_completed_successfully
+
+  user_gold:
+    container_name: user_gold
 
     build:
       context: .
@@ -140,7 +183,7 @@ services:
     command: >
       /opt/spark/bin/spark-submit
       --master local[2]
-      /app/consumers/funnel_analysis.py
+      /app/user_gold.py
 
     volumes:
       - .:/app
@@ -152,24 +195,16 @@ services:
       admin:
         condition: service_completed_successfully
 
-  consumer_products:
-    container_name: consumer_products
-
+  streamlit:
     build:
-      context: .
-      dockerfile: spark.Dockerfile
+      context: ./streamlit
+      dockerfile: streamlit.Dockerfile
+    container_name: streamlit-dashboard
 
-    command: >
-      /opt/spark/bin/spark-submit
-      --master local[2]
-      /app/consumers/products_summary.py
+    ports:
+      - "8501:8501"
 
     volumes:
-      - .:/app
+      - ./data:/app/data
 
-    depends_on:
-      kafka:
-        condition: service_healthy
-
-      admin:
-        condition: service_completed_successfully
+    restart: unless-stopped

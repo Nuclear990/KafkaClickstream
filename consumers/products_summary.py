@@ -59,7 +59,7 @@ products_df = spark.read \
     .format("csv") \
     .schema(product_schema) \
     .option("header", "true") \
-    .load("/app/products.csv")
+    .load("/app/data/static/products.csv")
 
 
 
@@ -119,7 +119,7 @@ query = joined_df.writeStream \
     .foreachBatch(write_summaries) \
     .option(
         "checkpointLocation",
-        "/app/data/checkpoint/product"
+        "/app/data/checkpoint/product/silver"
     ) \
     .start()
 

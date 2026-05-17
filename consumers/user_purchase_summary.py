@@ -67,7 +67,6 @@ summary_df = joined_df.groupBy(
     session_window(col("e.time_generated"), "5 seconds"),
     col("e.user_id")
 ).agg(
-    collect_list(col("product_id")).alias("purchased_products"),
     sum(col("p.cost")).alias("total_amount")
 )
 
@@ -76,7 +75,6 @@ clean_df = summary_df.select(
     col("user_id"),
     col("session_window.start").alias("session_start"),
     col("session_window.end").alias("session_end"),
-    col("purchased_products"),
     col("total_amount")
 )
 
@@ -100,7 +98,7 @@ query = clean_df.writeStream \
     .foreachBatch(print_batch) \
     .option(
         "checkpointLocation",
-        "/app/data/checkpoint/users"
+        "/app/data/checkpoint/users/silver"
     ) \
     .start()
 

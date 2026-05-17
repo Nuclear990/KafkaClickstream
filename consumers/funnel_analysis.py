@@ -246,7 +246,7 @@ def funnel_analysis(batch_df, batch_id):
 
 query = user_df.writeStream \
     .outputMode("update") \
-    .option("checkpointLocation", "/app/data/checkpoint/funnel") \
+    .option("checkpointLocation", "/app/data/checkpoint/funnel/silver") \
     .foreachBatch(funnel_analysis) \
     .start()
 

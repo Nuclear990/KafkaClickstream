@@ -23,9 +23,9 @@ The project simulates realistic e-commerce user activity and processes streaming
                                     |   clickstream     |
                                     +---------+---------+
                                               |
-               +--------------------------+---+---+--------------------------+
-               |                          |       |                          |
-               v                          v       v                          v
+               +--------------------------+---+------------------+-----------+
+               |                          |                      |           |
+               v                          v                      v           v
 
 +----------------------+  +-------------------------+  +--------------------+  +---------------------+
 | cart_abandonment.py  |  | user_purchase_summary.py|  | product_summary.py |  | funnel_analysis.py  |
@@ -35,7 +35,7 @@ The project simulates realistic e-commerce user activity and processes streaming
            v                           v                          v                        |
                                                                                            v
 +----------------------+  +-------------------------+  +--------------------+  +---------------------+
-| abandoned_carts      |  | parquet output          |  | parquet output     |  | console output      |
+| abandoned_carts      |  | parquet output          |  | parquet output     |  | parquet output      |
 | Kafka Topic          |  | purchase summaries      |  | product + category |  | funnel metrics      |
 +----------+-----------+  +-------------------------+  | summaries          |  +---------------------+
            |                                           +--------------------+

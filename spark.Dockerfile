@@ -4,6 +4,8 @@ FROM apache/spark:3.5.1
 
 USER root
 
+RUN mkdir -p /app/data/checkpoint && chmod -R 777 /app/data/checkpoint
+
 # Create jars directory
 RUN mkdir -p /opt/spark/jars
 
