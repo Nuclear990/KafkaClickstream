@@ -41,16 +41,16 @@ The project simulates realistic e-commerce user activity and processes streaming
 +----------+-----------+  +------------+------------+  | summaries          |  +---------------------+
            |                           |               +--------------------+
            v                           v
-+-------------------------------+   +------------------+
-| abandoned_carts_consumer.py   |   | user_gold.py    |
-| Python Debug Consumer         |   | Gold Aggregates |
-+-------------------------------+   +--------+---------+
-                                             |
-                                             v
-                                  +----------------------+
-                                  | Streamlit Dashboard  |
-                                  | user_dashboard.py    |
-                                  +----------------------+
++---------------------------+   +-----------------+
+| abandoned_carts_consumer  |   | user_gold.py    |
+| Python Debug Consumer     |   | Gold Aggregates |
++---------------------------+   +--------+--------+
+                                        |
+                                        v
+                              +----------------------+
+                              | Streamlit Dashboard  |
+                              | user_dashboard.py    |
+                              +----------------------+
 ```
 
 ---
