@@ -41,10 +41,10 @@ The project simulates realistic e-commerce user activity and processes streaming
            |                                           +--------------------+
            v
 
-+-------------------------------+
-| abandoned_carts_consumer.py   |
-| Python Debug Consumer         |
-+-------------------------------+
++--------------------------+
+| abandoned_carts_consumer |
+| Python Debug Consumer    |
++--------------------------+
 ```
 
 ---
@@ -191,13 +191,5 @@ This starts:
 - Producer
 - Spark consumers
 - Topic admin service
-
----
-
-# Requirements
-
-```text
-confluent-kafka==2.14.0
-```
 
 ---
