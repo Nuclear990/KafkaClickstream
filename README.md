@@ -191,5 +191,6 @@ This starts:
 - Producer
 - Spark consumers
 - Topic admin service
+- Streamlit Dashboard
 
 ---
