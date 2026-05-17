@@ -2,10 +2,11 @@
 
 The project simulates realistic e-commerce user activity and processes streaming events for:
 
-- Cart abandonment detection
-- Purchase session analytics
-- Product and category performance tracking
-- Stateful funnel analysis
+* Cart abandonment detection
+* Purchase session analytics
+* Product and category performance tracking
+* Stateful funnel analysis
+* Gold-layer KPI aggregation for dashboards
 
 ---
 
@@ -28,7 +29,7 @@ The project simulates realistic e-commerce user activity and processes streaming
                v                          v                      v           v
 
 +----------------------+  +-------------------------+  +--------------------+  +---------------------+
-| cart_abandonment.py  |  | user_purchase_summary.py|  | product_summary.py |  | funnel_analysis.py  |
+| cart_abandonment.py  |  | user_purchase_summary.py|  | products_summary.py|  | funnel_analysis.py  |
 | Spark Streaming Job  |  | Spark Streaming Job     |  | Spark Streaming Job|  | Spark Streaming Job |
 +----------+-----------+  +------------+------------+  +---------+----------+  | (stateful ASP)      |
            |                           |                          |             +----------+----------+
@@ -36,28 +37,34 @@ The project simulates realistic e-commerce user activity and processes streaming
                                                                                            v
 +----------------------+  +-------------------------+  +--------------------+  +---------------------+
 | abandoned_carts      |  | parquet output          |  | parquet output     |  | parquet output      |
-| Kafka Topic          |  | purchase summaries      |  | product + category |  | funnel metrics      |
-+----------+-----------+  +-------------------------+  | summaries          |  +---------------------+
-           |                                           +--------------------+
-           v
-
-+--------------------------+
-| abandoned_carts_consumer |
-| Python Debug Consumer    |
-+--------------------------+
+| Kafka Topic          |  | user summaries          |  | product + category |  | funnel metrics      |
++----------+-----------+  +------------+------------+  | summaries          |  +---------------------+
+           |                           |               +--------------------+
+           v                           v
++-------------------------------+   +------------------+
+| abandoned_carts_consumer.py   |   | user_gold.py    |
+| Python Debug Consumer         |   | Gold Aggregates |
++-------------------------------+   +--------+---------+
+                                             |
+                                             v
+                                  +----------------------+
+                                  | Streamlit Dashboard  |
+                                  | user_dashboard.py    |
+                                  +----------------------+
 ```
 
 ---
 
 # Tech Stack
 
-| Component | Technology |
-|---|---|
-| Streaming Broker | Kafka |
+| Component         | Technology                 |
+| ----------------- | -------------------------- |
+| Streaming Broker  | Kafka                      |
 | Stream Processing | Spark Structured Streaming |
-| Producer | Python |
-| Consumers | Python + Spark |
-| Containerization | Docker |
+| Producer          | Python                     |
+| Consumers         | Python + Spark             |
+| Dashboard         | Streamlit                  |
+| Containerization  | Docker                     |
 
 ---
 
@@ -69,15 +76,20 @@ The project simulates realistic e-commerce user activity and processes streaming
 ├── admin.py
 ├── docker-compose.yml
 ├── requirements.txt
-├── products.csv
+├── reset_data.sh
 │
 ├── consumers/
 │   ├── abandoned_carts_consumer.py
 │   ├── cart_abandonment.py
 │   ├── user_purchase_summary.py
-│   ├── product_summary.py
+│   ├── products_summary.py
 │   └── funnel_analysis.py
 │
+├── streamlit/
+│   ├── user_dashboard.py
+│   └── streamlit.Dockerfile
+│
+├── user_gold.py
 ├── Dockerfile
 ├── spark.Dockerfile
 └── README.md
@@ -100,11 +112,11 @@ The project simulates realistic e-commerce user activity and processes streaming
 
 Supported event types:
 
-- `page_view`
-- `search`
-- `product_view`
-- `add_to_cart`
-- `purchase`
+* `page_view`
+* `search`
+* `product_view`
+* `add_to_cart`
+* `purchase`
 
 ---
 
@@ -112,7 +124,7 @@ Supported event types:
 
 ## Cart Abandonment Pipeline
 
-Detects users who added products to cart but did not complete a purchase within a session window. Publishes abandonment events to a dedicated Kafka topic consumed downstream by a CRM or notification system.
+Detects users who added products to cart but did not complete a purchase within a session window. Publishes abandonment events to a dedicated Kafka topic.
 
 File:
 
@@ -126,7 +138,7 @@ Output: `abandoned_carts` Kafka topic — `user_id`, `product_ids`, `ts`
 
 ## User Purchase Summary Pipeline
 
-Processes purchase events and generates session-based purchase summaries enriched with product metadata. Writes results to Parquet for downstream batch processing.
+Processes purchase events and generates session-based purchase summaries. Results are written to parquet for downstream aggregation.
 
 File:
 
@@ -134,29 +146,43 @@ File:
 consumers/user_purchase_summary.py
 ```
 
-Output: `/tmp/user_purchase_summary` — `user_id`, `session_start`, `session_end`, `purchased_products`, `total_amount`
+Output:
+
+```text
+/app/data/output/users
+```
+
+Columns:
+
+* `user_id`
+* `session_start`
+* `session_end`
+* `total_amount`
 
 ---
 
 ## Product Summary Pipeline
 
-Joins purchase events with product metadata to produce two aggregations per micro-batch: a product-level summary and a category-level rollup. Both are written to separate Parquet directories.
+Joins purchase events with product metadata to produce product-level and category-level aggregations.
 
 File:
 
 ```text
-consumers/product_summary.py
+consumers/products_summary.py
 ```
 
-Output:
-- `/tmp/product_summary` — `product_id`, `name`, `category`, `num_purchases`, `revenue`
-- `/tmp/category_summary` — `category`, `num_products`, `num_purchases`, `revenue`
+Outputs:
+
+```text
+/app/data/output/product
+/app/data/output/category
+```
 
 ---
 
 ## Funnel Analysis Pipeline
 
-Tracks each user's highest reached funnel stage using arbitrary stateful processing (ASP). Computes per-batch drop-off and conversion rates across all four funnel stages. Sessions expire after 30 minutes of inactivity.
+Tracks each user's highest reached funnel stage using arbitrary stateful processing (ASP). Computes drop-off and conversion rates across all funnel stages.
 
 File:
 
@@ -166,14 +192,68 @@ consumers/funnel_analysis.py
 
 Funnel stages:
 
-| Stage | Event Types |
-|---|---|
-| 1 | `page_view`, `search` |
-| 2 | `product_view` |
-| 3 | `add_to_cart` |
-| 4 | `purchase` |
+| Stage | Event Types           |
+| ----- | --------------------- |
+| 1     | `page_view`, `search` |
+| 2     | `product_view`        |
+| 3     | `add_to_cart`         |
+| 4     | `purchase`            |
 
-Output: console — `funnel_stage`, `user_count`, `dropoff_rate_pct`, `conversion_rate_pct`
+Output:
+
+```text
+/app/data/output/funnel
+```
+
+---
+
+## Gold Metrics Pipeline
+
+Consumes silver-layer user summaries and produces dashboard-ready KPI aggregates.
+
+File:
+
+```text
+user_gold.py
+```
+
+Generated metrics:
+
+* Average Order Value (AOV)
+* Average Purchase Session Duration
+* Session Spend Distribution Histogram
+
+Outputs:
+
+```text
+/app/data/gold_output/users/averages
+/app/data/gold_output/users/spend_distribution
+```
+
+---
+
+# Dashboard
+
+Streamlit dashboard visualizing gold-layer metrics.
+
+File:
+
+```text
+streamlit/user_dashboard.py
+```
+
+Features:
+
+* Average Order Value KPI
+* Average Session Duration KPI
+* Session Spend Distribution Chart
+* Last 2 hours rolling view
+
+Access:
+
+```text
+http://localhost:8501
+```
 
 ---
 
@@ -187,10 +267,22 @@ docker compose up --build
 
 This starts:
 
-- Kafka
-- Producer
-- Spark consumers
-- Topic admin service
-- Streamlit Dashboard
+* Kafka
+* Topic admin service
+* Producer
+* Spark streaming jobs
+* Gold aggregation pipeline
+* Streamlit dashboard
 
 ---
+
+# Resetting Data
+
+Clear checkpoints and parquet outputs:
+
+```bash
+./reset_data.sh
+```
+
+---
+
