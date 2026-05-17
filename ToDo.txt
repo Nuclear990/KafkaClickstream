@@ -1,0 +1,187 @@
+# TODO
+
+================================================================================
+1. FIX DASHBOARD ARCHITECTURE
+================================================================================
+
+CURRENT PROBLEM
+---------------
+Streamlit directly runs Spark and reads parquet files.
+
+Problems:
+- repeated parquet scans
+- slower dashboard over time
+- Spark inside UI is heavy
+- poor scalability
+
+CURRENT FLOW
+------------
+Streamlit --> Spark --> Parquet
+
+BETTER FLOW
+-----------
+Streamlit --> DuckDB --> Parquet
+
+PLAN
+----
+- remove Spark from Streamlit
+- use DuckDB for queries
+- query parquet using DuckDB
+- return pandas DataFrames to Streamlit
+
+EXPECTED RESULT
+---------------
+- faster dashboard
+- lower RAM usage
+- cleaner architecture
+
+
+================================================================================
+2. ADD OBSERVABILITY STACK
+================================================================================
+
+ADD
+---
+- Prometheus
+- Grafana
+- Kafka Exporter
+- Spark metrics
+
+TRACK
+-----
+- consumer lag
+- throughput
+- Spark batch duration
+- CPU usage
+- memory usage
+- failed batches
+
+CREATE GRAFANA DASHBOARDS FOR
+-----------------------------
+- Kafka
+- Spark
+- containers
+- pipeline health
+
+
+================================================================================
+3. ADD DEAD LETTER QUEUE (DLQ)
+================================================================================
+
+CURRENT PROBLEM
+---------------
+Bad events are not separated properly.
+
+Examples:
+- invalid JSON
+- bad timestamps
+- missing fields
+- schema mismatch
+
+PLAN
+----
+Create:
+- dead_letter_queue Kafka topic
+- DLQ consumer
+
+Store:
+- original event
+- error reason
+- timestamp
+
+FLOW
+----
+valid events   --> normal pipeline
+invalid events --> DLQ
+
+
+================================================================================
+4. IMPROVE EXACTLY-ONCE PROCESSING
+================================================================================
+
+CURRENT PROBLEM
+---------------
+Pipeline is mostly at-least-once.
+
+Duplicates can happen because:
+- parquet appends are not transactional
+- foreachBatch can duplicate writes
+- retries can duplicate data
+
+PLAN
+----
+Learn and use Delta Lake.
+
+Benefits:
+- ACID transactions
+- merge/upsert
+- safer retries
+- compaction
+- schema evolution
+
+ALSO ADD
+--------
+- deduplication using event_id
+- batch tracking if needed
+
+
+================================================================================
+5. CLEAN UP DOCKER COMPOSE
+================================================================================
+
+CURRENT PROBLEM
+---------------
+docker-compose.yml is getting messy.
+
+Problems:
+- many commented services
+- difficult startup management
+- manual toggling
+
+PLAN
+----
+- split compose files
+- add Makefile
+- add compose profiles
+- separate dev services
+
+
+================================================================================
+6. IMPROVE STORAGE LAYER
+================================================================================
+
+CURRENT PROBLEM
+---------------
+Too many small parquet files.
+
+Problems:
+- slower reads
+- metadata overhead
+- worse Spark performance
+
+PLAN
+----
+- add compaction
+- improve partitioning
+- move to Delta Lake later
+
+
+================================================================================
+7. LEARN SCHEMA EVOLUTION
+================================================================================
+
+LEARN
+-----
+- Schema Registry
+- Avro
+- Protobuf
+
+GOAL
+----
+Support:
+- schema versioning
+- backward compatibility
+- forward compatibility
+
+
+

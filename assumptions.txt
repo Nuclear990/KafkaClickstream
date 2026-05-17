@@ -1,0 +1,74 @@
+# Project Assumptions
+
+## 1. Single Machine Project
+
+This project runs on one machine only.
+
+Hardware:
+- 8 GB RAM
+- no cluster
+- no VMs
+
+Because of this:
+- Kafka is single broker
+- Spark runs in local mode
+- replication factor = 1
+- storage is local filesystem
+
+Goal of this project:
+- learn streaming systems
+- learn Spark Structured Streaming
+- learn Kafka
+- learn stateful processing
+
+NOT:
+- production-scale distributed system
+
+
+## 2. Small Windows And Watermarks Are Intentional
+
+Current values are intentionally small:
+- 5 second session windows
+- small watermarks
+- fast triggers
+
+Reason:
+- quick output
+- easier debugging
+- faster iteration
+- easier demos on weak hardware
+
+These values are not production realistic.
+
+
+## 3. Medallion Architecture Is Simplified
+
+ not storing full raw bronze data right now.
+
+Reason:
+- less storage usage
+- less compute overhead
+- not useful for current learning goals
+- weaker hardware
+
+Current parquet outputs are treated like semi-silver outputs.
+
+Current focus:
+- streaming logic
+- aggregations
+- event processing
+- stateful processing
+
+
+## 4. Schema Registry Is Delayed Intentionally
+
+Not learning yet:
+- Avro
+- Protobuf
+- Schema Registry
+
+Reason:
+- lower learning priority currently
+- project already has enough complexity
+
+Will add later during polishing phase.
