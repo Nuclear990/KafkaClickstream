@@ -28,4 +28,10 @@ RUN curl -L -o /opt/spark/jars/spark-token-provider.jar \
 RUN curl -L -o /opt/spark/jars/commons-pool2.jar \
     https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/2.11.1/commons-pool2-2.11.1.jar
 
+# JMX Exporter
+RUN mkdir -p /opt/jmx
+
+RUN curl -L -o /opt/jmx/jmx_prometheus_javaagent.jar \
+    https://repo.maven.apache.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/1.0.1/jmx_prometheus_javaagent-1.0.1.jar
+    
 USER spark
