@@ -24,6 +24,7 @@ The project simulates realistic e-commerce user activity and processes streaming
                                     |   clickstream     |
                                     +---------+---------+
                                               |
+                                              v
                +--------------------------+---+------------------+------------------------+
                |                          |                      |                        |
                v                          v                      v                        v
