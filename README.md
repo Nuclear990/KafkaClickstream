@@ -58,7 +58,6 @@ The project simulates realistic e-commerce user activity and processes streaming
                     | Producer / Kafka / Spark   |
                     | Monitoring                 |
                     +----------------------------+
-
 ```
 
 ---
