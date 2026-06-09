@@ -10,7 +10,7 @@ RUN mkdir -p /app/data/checkpoint && chmod -R 777 /app/data/checkpoint
 RUN mkdir -p /opt/spark/jars
 
 # Install Python dependencies for ASP
-RUN pip install pandas pyarrow
+RUN pip install pandas pyarrow prometheus-client
 
 # Spark Kafka connector
 RUN curl -L -o /opt/spark/jars/spark-sql-kafka.jar \

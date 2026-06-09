@@ -1,4 +1,5 @@
-
+volumes:
+    grafana_data:
 services:
 
   kafka:
@@ -117,12 +118,12 @@ services:
     command: >
       /opt/spark/bin/spark-submit
       --master local[2]
-      --conf spark.driver.extraJavaOptions=-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=8090:/opt/jmx/jmx-exporter.yml
+      --conf spark.driver.extraJavaOptions=-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=8090:/opt/jmx/jmx.yml
       /app/consumers/user_purchase_summary.py
 
     volumes:
       - .:/app
-      - ./jmx-exporter.yml:/opt/jmx/jmx-exporter.yml
+      - ./jmx.yml:/opt/jmx/jmx.yml
 
     depends_on:
       kafka:
@@ -222,20 +223,30 @@ services:
       - "9090:9090"
     depends_on:
       - kafka
-      # - streamlit
-      # - consumer_user_purchase
-      # - user_gold
+      - consumer_user_purchase
 
 
-  # kafka_exporter:
-  #   image: danielqsj/kafka-exporter 
-  #   command: ["--kafka.server=kafka:9092"]
-  #   container_name: kafka_exporter
-  #   ports:
-  #     - "9308:9308"  
-  #   depends_on:
-  #     kafka:
-  #       condition: service_healthy   
+  kafka_exporter:
+    image: danielqsj/kafka-exporter 
+    command: ["--kafka.server=kafka:9092"]
+    container_name: kafka_exporter
+    ports:
+      - "9308:9308"  
+    depends_on:
+      kafka:
+        condition: service_healthy 
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus  
+  
+  
 
   
 

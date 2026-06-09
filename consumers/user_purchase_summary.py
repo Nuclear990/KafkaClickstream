@@ -1,6 +1,27 @@
 from pyspark.sql import *
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
+from pyspark.sql.streaming import StreamingQueryListener
+
+from prometheus_client import Gauge, start_http_server
+
+start_http_server(8000)
+
+spark_input_rows_per_second = Gauge(
+    "spark_input_rows_per_second",
+    "Input rows per second"
+)
+
+spark_processed_rows_per_second = Gauge(
+    "spark_processed_rows_per_second",
+    "Processed rows per second"
+)
+
+spark_batch_duration_ms = Gauge(
+    "spark_batch_duration_ms",
+    "Microbatch duration in ms"
+)
+
 
 spark = SparkSession.builder \
     .appName("user_purchase_summary") \
@@ -8,6 +29,39 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 spark.sparkContext.setLogLevel("ERROR")
+
+class MetricsListener(StreamingQueryListener):
+
+    def onQueryStarted(self, event):
+        pass
+
+    def onQueryProgress(self, event):
+
+        p = event.progress
+
+        spark_input_rows_per_second.set(
+            p.inputRowsPerSecond
+        )
+
+        spark_processed_rows_per_second.set(
+            p.processedRowsPerSecond
+        )
+
+        spark_batch_duration_ms.set(
+            p.durationMs.get(
+                "triggerExecution",
+                0
+            )
+        )
+        
+    def onQueryTerminated(self, event):
+        pass
+
+
+spark.streams.addListener(
+    MetricsListener()
+)
+
 
 source_df = spark.readStream \
     .format("kafka") \
@@ -88,9 +142,9 @@ def print_batch(batch_df, batch_id):
         vertical=True
     )
 
-    batch_df.write \
-        .mode("append") \
-        .parquet("/app/data/output/users")
+    # batch_df.write \
+    #     .mode("append") \
+    #     .parquet("/app/data/output/users")
 
 
 query = clean_df.writeStream \

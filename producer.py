@@ -4,6 +4,15 @@ import random
 import json
 import time
 
+from prometheus_client import Counter, start_http_server
+
+start_http_server(8000)
+
+messages_produced = Counter(
+    "producer_messages_produced_total",
+    "Total successfully produced messages"
+)
+
 # Config
 
 TOPIC = "clickstream"
@@ -239,6 +248,7 @@ def mutate_user(user_id, event):
 # Send Event
 
 def send_event(event):
+    messages_produced.inc()
 
     producer.produce(
         topic=TOPIC,

@@ -4,7 +4,7 @@ set -e
 
 echo "Stopping containers..."
 
-docker compose down -v
+docker compose down
 
 echo "Removing old directories..."
 
@@ -14,6 +14,7 @@ sudo rm -rf /home/catpuccino/Desktop/kafka/data/checkpoint/users/gold
 sudo rm -rf /home/catpuccino/Desktop/kafka/data/checkpoint/users/silver
 
 echo "Recreating directories..."
+
 
 mkdir -p /home/catpuccino/Desktop/kafka/data/gold_output/users
 mkdir -p /home/catpuccino/Desktop/kafka/data/output/users
