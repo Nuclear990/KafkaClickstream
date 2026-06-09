@@ -27,7 +27,6 @@ The project simulates realistic e-commerce user activity and processes streaming
                +--------------------------+---+------------------+------------------------+
                |                          |                      |                        |
                v                          v                      v                        v
-
 +----------------------+  +-------------------------+  +--------------------+  +---------------------+
 | cart_abandonment.py  |  | user_purchase_summary.py|  | products_summary.py|  | funnel_analysis.py  |
 | Spark Streaming Job  |  | Spark Streaming Job     |  | Spark Streaming Job|  | Spark Streaming Job |
