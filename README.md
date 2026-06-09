@@ -24,9 +24,9 @@ The project simulates realistic e-commerce user activity and processes streaming
                                     |   clickstream     |
                                     +---------+---------+
                                               |
-               +--------------------------+---+------------------+-----------+
-               |                          |                      |           |
-               v                          v                      v           v
+               +--------------------------+---+------------------+------------------------+
+               |                          |                      |                        |
+               v                          v                      v                        v
 
 +----------------------+  +-------------------------+  +--------------------+  +---------------------+
 | cart_abandonment.py  |  | user_purchase_summary.py|  | products_summary.py|  | funnel_analysis.py  |
@@ -51,6 +51,14 @@ The project simulates realistic e-commerce user activity and processes streaming
                               | Streamlit Dashboard  |
                               | user_dashboard.py    |
                               +----------------------+
+
+
+                    +----------------------------+
+                    | Prometheus + Grafana       |
+                    | Producer / Kafka / Spark   |
+                    | Monitoring                 |
+                    +----------------------------+
+
 ```
 
 ---
@@ -64,38 +72,11 @@ The project simulates realistic e-commerce user activity and processes streaming
 | Producer          | Python                     |
 | Consumers         | Python + Spark             |
 | Dashboard         | Streamlit                  |
+| Monitoring        | Prometheus + Grafana       |
 | Containerization  | Docker                     |
 
 ---
 
-# Project Structure
-
-```text
-.
-├── producer.py
-├── admin.py
-├── docker-compose.yml
-├── requirements.txt
-├── reset_data.sh
-│
-├── consumers/
-│   ├── abandoned_carts_consumer.py
-│   ├── cart_abandonment.py
-│   ├── user_purchase_summary.py
-│   ├── products_summary.py
-│   └── funnel_analysis.py
-│
-├── streamlit/
-│   ├── user_dashboard.py
-│   └── streamlit.Dockerfile
-│
-├── user_gold.py
-├── Dockerfile
-├── spark.Dockerfile
-└── README.md
-```
-
----
 
 # Event Schema
 
@@ -253,6 +234,27 @@ Access:
 
 ```text
 http://localhost:8501
+```
+
+---
+
+# Monitoring
+
+The pipeline is monitored using Prometheus and Grafana.
+
+Metrics currently tracked include:
+
+* Producer throughput
+* Kafka throughput
+* Consumer lag
+* Spark Structured Streaming processing rate
+
+These dashboards provide visibility into ingestion, processing performance, and end-to-end pipeline health.
+
+Access:
+
+```text
+http://localhost:3000
 ```
 
 ---
